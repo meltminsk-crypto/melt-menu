@@ -6,6 +6,7 @@
 <title>MELT — меню</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root{
     --bg:#171310;
@@ -29,7 +30,6 @@
   }
   .app{max-width:480px; margin:0 auto; min-height:100vh; background:var(--bg); position:relative;}
 
-  /* ---------- HERO ---------- */
   .hero{
     padding:28px 20px 18px;
     background:
@@ -62,7 +62,6 @@
     margin-bottom:20px;
   }
 
-  /* ---------- SERVING CLOCK (signature element) ---------- */
   .clock{margin-top:6px;}
   .clock-status{
     display:flex; align-items:center; gap:8px;
@@ -111,7 +110,6 @@
     transition:left 0.3s ease;
   }
 
-  /* ---------- MAIN TABS ---------- */
   .tabs{
     display:flex;
     gap:8px;
@@ -151,7 +149,6 @@
   .tab.active .tab-name{color:var(--cream);}
   .tab:not(.active) .tab-name{color:var(--dim);}
 
-  /* ---------- SUBCATEGORY CHIPS ---------- */
   .subtabs{
     display:flex; gap:8px;
     padding:12px 20px 4px;
@@ -172,7 +169,6 @@
   }
   .chip:active{background:var(--surface-2);}
 
-  /* ---------- MENU BODY ---------- */
   .menu-view{padding:6px 20px 10px;}
   .menu-view.hidden{display:none;}
 
@@ -230,7 +226,6 @@
     letter-spacing:0.02em;
   }
 
-  /* dual-price items (poke bowl) */
   .item-prices{display:flex; gap:14px; margin-top:2px;}
   .price-opt{
     font-family:'IBM Plex Mono', monospace;
@@ -240,7 +235,6 @@
   .price-opt b{font-weight:600;}
   .price-opt span{color:var(--dim-2); font-size:10px;}
 
-  /* constructor block */
   .constructor{
     margin-top:24px;
     border:1px solid var(--line);
@@ -332,6 +326,16 @@
 </div>
 
 <script>
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+  if (tg.requestFullscreen) tg.requestFullscreen();
+  if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+  if (tg.setHeaderColor) tg.setHeaderColor('#171310');
+  if (tg.setBackgroundColor) tg.setBackgroundColor('#171310');
+}
+
 const MENU = {
   breakfast: {
     categories: [
@@ -430,12 +434,6 @@ const MENU = {
   }
 };
 
-const TAB_META = {
-  breakfast: {open:10, close:16},
-  allday: {open:10, close:22},
-  evening: {open:16, close:22}
-};
-
 const menuRoot = document.getElementById('menuRoot');
 const subtabsEl = document.getElementById('subtabs');
 const tabsEl = document.getElementById('tabs');
@@ -496,7 +494,6 @@ function renderTab(tabId){
   return html;
 }
 
-// build all views once
 ['breakfast','allday','evening'].forEach(tabId => {
   menuRoot.insertAdjacentHTML('beforeend', renderTab(tabId));
 });
@@ -528,7 +525,6 @@ subtabsEl.addEventListener('click', (e) => {
   if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
 });
 
-// ---- live serving clock ----
 function updateClock(){
   const now = new Date();
   const hourFloat = now.getHours() + now.getMinutes()/60;
