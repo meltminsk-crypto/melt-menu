@@ -303,6 +303,7 @@
     letter-spacing:0.03em;
   }
 
+  /* ---------- CART BAR ---------- */
   .cart-bar{
     position:fixed;
     left:0; right:0; bottom:0;
@@ -339,6 +340,7 @@
     font-family:'IBM Plex Mono', monospace;
   }
 
+  /* ---------- CART PANEL ---------- */
   .cart-overlay{
     position:fixed; inset:0;
     background:rgba(0,0,0,0.55);
@@ -573,7 +575,7 @@ const MENU = {
         ]
       }
     ],
-    constructor: {
+    constructorBlock: {
       title: "Завтрак — конструктор",
       base: "Яйца (глазунья, скрэмбл, пашот) — 100 г, входит в базу",
       addons: [
@@ -648,7 +650,8 @@ const menuRoot = document.getElementById('menuRoot');
 const subtabsEl = document.getElementById('subtabs');
 const tabsEl = document.getElementById('tabs');
 
-const cart = {};
+// ---------- CART STATE ----------
+const cart = {}; // key -> {name, price, qty}
 
 function addToCart(key, name, price){
   if(!cart[key]) cart[key] = {name, price, qty:0};
@@ -730,8 +733,8 @@ function renderTab(tabId){
         ${cat.items.map(renderItem).join('')}
       </div>`;
   });
-  if(data.constructor){
-    html += renderConstructor(data.constructor);
+  if(data.constructorBlock){
+    html += renderConstructor(data.constructorBlock);
   }
   html += `</div>`;
   return html;
@@ -750,7 +753,7 @@ function renderSubtabs(tabId){
   const data = MENU[tabId];
   subtabsEl.innerHTML = data.categories.map(cat =>
     `<div class="chip" data-target="cat-${tabId}-${cat.id}">${cat.title}</div>`
-  ).join('') + (data.constructor ? `<div class="chip" data-target="constructor-${tabId}">Конструктор</div>` : '');
+  ).join('') + (data.constructorBlock ? `<div class="chip" data-target="constructor-${tabId}">Конструктор</div>` : '');
 }
 
 function setActiveTab(tabId){
@@ -779,6 +782,7 @@ menuRoot.addEventListener('click', (e) => {
   addToCart(btn.dataset.key, btn.dataset.name, parseFloat(btn.dataset.price));
 });
 
+// ---------- CART UI ----------
 const cartBar = document.getElementById('cartBar');
 const cartCount = document.getElementById('cartCount');
 const cartBarTotal = document.getElementById('cartBarTotal');
@@ -850,6 +854,7 @@ cartItemsEl.addEventListener('click', (e) => {
   if(minus){ decFromCart(minus.dataset.key); }
 });
 
+// ---- live serving clock ----
 function updateClock(){
   const now = new Date();
   const hourFloat = now.getHours() + now.getMinutes()/60;
