@@ -132,5 +132,6 @@ pdf.onclick=async()=>{
   try{const u=URL.createObjectURL(await makePdf(cv)),a=document.createElement("a");a.href=u;a.download="zarplaty-"+new Date().toISOString().slice(0,10)+".pdf";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}
   catch(e){note("Не удалось сохранить PDF")}
 };
+document.addEventListener("click",e=>{const a=document.activeElement;if(a&&a.tagName==="INPUT"&&!e.target.closest("input,button"))a.blur()});
 render();
 </script></body></html>
