@@ -1,898 +1,136 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>MELT — меню</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Калькулятор зарплат · Melt</title>
 <style>
-  :root{
-    --bg:#171310;
-    --surface:#211b15;
-    --surface-2:#2a231b;
-    --line:#3c3327;
-    --cream:#f3ead9;
-    --dim:#ab9d84;
-    --dim-2:#7d715c;
-    --rust:#cd7439;
-    --sage:#96ab7e;
-    --wine:#a55c50;
-    --gold:#cfa227;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  html,body{background:var(--bg); color:var(--cream);}
-  body{
-    font-family:'Manrope', sans-serif;
-    -webkit-font-smoothing:antialiased;
-    padding-bottom:90px;
-  }
-  .app{max-width:480px; margin:0 auto; min-height:100vh; background:var(--bg); position:relative;}
-
-  .hero{
-    padding:28px 20px 18px;
-    background:
-      radial-gradient(120% 100% at 15% 0%, rgba(205,116,57,0.16), transparent 55%),
-      var(--bg);
-    border-bottom:1px solid var(--line);
-  }
-  .hero-top{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2px;}
-  .wordmark{
-    font-family:'Newsreader', serif;
-    font-style:italic;
-    font-weight:600;
-    font-size:34px;
-    letter-spacing:0.5px;
-    color:var(--cream);
-  }
-  .locale{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:10px;
-    color:var(--dim-2);
-    text-transform:uppercase;
-    letter-spacing:0.08em;
-    text-align:right;
-    line-height:1.5;
-  }
-  .tagline{
-    font-size:12.5px;
-    color:var(--dim);
-    letter-spacing:0.02em;
-    margin-bottom:20px;
-  }
-
-  .clock{margin-top:6px;}
-  .clock-status{
-    display:flex; align-items:center; gap:8px;
-    margin-bottom:10px;
-  }
-  .clock-dot{
-    width:7px; height:7px; border-radius:50%;
-    background:var(--sage);
-    box-shadow:0 0 0 3px rgba(150,171,126,0.18);
-    flex-shrink:0;
-  }
-  .clock-dot.closed{background:var(--dim-2); box-shadow:0 0 0 3px rgba(125,113,92,0.18);}
-  .clock-text{font-size:13px; color:var(--cream); font-weight:600;}
-  .clock-text span{color:var(--dim); font-weight:500;}
-
-  .timeline{
-    position:relative;
-    height:26px;
-  }
-  .timeline-track{
-    position:relative;
-    height:6px;
-    border-radius:4px;
-    background:var(--surface-2);
-    overflow:hidden;
-    display:flex;
-  }
-  .seg{height:100%;}
-  .seg.breakfast{background:linear-gradient(90deg, var(--sage), var(--sage)); flex:6;}
-  .seg.evening{background:linear-gradient(90deg, var(--wine), var(--wine)); flex:6;}
-  .timeline-labels{
-    display:flex; justify-content:space-between;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:9.5px;
-    color:var(--dim-2);
-    margin-top:6px;
-    letter-spacing:0.03em;
-  }
-  .now-marker{
-    position:absolute; top:-3px;
-    width:12px; height:12px; border-radius:50%;
-    background:var(--cream);
-    border:2px solid var(--bg);
-    box-shadow:0 0 0 1px var(--line);
-    transform:translateX(-50%);
-    transition:left 0.3s ease;
-  }
-
-  .tabs{
-    display:flex;
-    gap:8px;
-    padding:14px 20px 10px;
-    position:sticky; top:0; z-index:20;
-    background:var(--bg);
-    border-bottom:1px solid var(--line);
-  }
-  .tab{
-    flex:1;
-    text-align:center;
-    padding:10px 6px 9px;
-    border-radius:12px;
-    background:var(--surface);
-    border:1px solid var(--line);
-    cursor:pointer;
-    transition:background 0.15s, border-color 0.15s;
-    user-select:none;
-  }
-  .tab .tab-name{
-    display:block;
-    font-size:12.5px;
-    font-weight:700;
-    letter-spacing:0.01em;
-  }
-  .tab .tab-hours{
-    display:block;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:9px;
-    color:var(--dim-2);
-    margin-top:2px;
-  }
-  .tab.active{background:var(--surface-2); border-color:var(--dim-2);}
-  .tab[data-tab="breakfast"].active{border-color:var(--sage);}
-  .tab[data-tab="allday"].active{border-color:var(--gold);}
-  .tab[data-tab="evening"].active{border-color:var(--wine);}
-  .tab.active .tab-name{color:var(--cream);}
-  .tab:not(.active) .tab-name{color:var(--dim);}
-
-  .subtabs{
-    display:flex; gap:8px;
-    padding:12px 20px 4px;
-    overflow-x:auto;
-    scrollbar-width:none;
-  }
-  .subtabs::-webkit-scrollbar{display:none;}
-  .chip{
-    flex:0 0 auto;
-    font-size:11.5px;
-    font-weight:600;
-    color:var(--dim);
-    padding:6px 13px;
-    border-radius:20px;
-    border:1px solid var(--line);
-    white-space:nowrap;
-    cursor:pointer;
-  }
-  .chip:active{background:var(--surface-2);}
-
-  .menu-view{padding:6px 20px 10px;}
-  .menu-view.hidden{display:none;}
-
-  .cat-block{margin-top:26px;}
-  .cat-title{
-    font-family:'Newsreader', serif;
-    font-style:italic;
-    font-weight:600;
-    font-size:19px;
-    color:var(--cream);
-    margin-bottom:2px;
-  }
-  .cat-rule{
-    height:1px;
-    background:linear-gradient(90deg, var(--line), transparent);
-    margin:8px 0 14px;
-  }
-
-  .item{
-    padding:14px 0;
-    border-bottom:1px solid var(--line);
-  }
-  .item:last-child{border-bottom:none;}
-  .item-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-  }
-  .item-name{
-    font-size:14.5px;
-    font-weight:700;
-    color:var(--cream);
-    letter-spacing:0.01em;
-  }
-  .item-right{display:flex; align-items:center; gap:10px; flex-shrink:0;}
-  .item-price{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:14px;
-    font-weight:500;
-    color:var(--rust);
-    white-space:nowrap;
-  }
-  .item-price::after{content:' р.'; font-size:10px; color:var(--rust); opacity:0.7;}
-  .item-desc{
-    font-size:12.5px;
-    color:var(--dim);
-    line-height:1.5;
-    margin-top:5px;
-  }
-  .item-meta{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:10px;
-    color:var(--dim-2);
-    margin-top:6px;
-    letter-spacing:0.02em;
-  }
-
-  .add-btn{
-    position:relative;
-    width:26px; height:26px;
-    border-radius:50%;
-    border:1px solid var(--rust);
-    background:transparent;
-    color:var(--rust);
-    font-size:16px;
-    line-height:1;
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
-    flex-shrink:0;
-    padding:0;
-  }
-  .add-btn:active{background:rgba(205,116,57,0.15);}
-  .add-btn .qty-badge{
-    position:absolute; top:-7px; right:-7px;
-    min-width:16px; height:16px; padding:0 3px;
-    border-radius:8px;
-    background:var(--rust);
-    color:var(--bg);
-    font-family:'IBM Plex Mono', monospace;
-    font-size:9.5px;
-    font-weight:600;
-    display:flex; align-items:center; justify-content:center;
-  }
-
-  .item-prices{display:flex; flex-direction:column; gap:10px; margin-top:8px;}
-  .price-opt-row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
-  .price-opt{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12.5px;
-    color:var(--rust);
-  }
-  .price-opt b{font-weight:600;}
-  .price-opt span{color:var(--dim-2); font-size:10px; display:block; margin-top:2px;}
-
-  .constructor{
-    margin-top:24px;
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:16px 16px 6px;
-    background:var(--surface);
-  }
-  .constructor-title{
-    font-family:'Newsreader', serif;
-    font-style:italic;
-    font-weight:600;
-    font-size:16px;
-    margin-bottom:12px;
-  }
-  .cons-row{
-    display:flex; justify-content:space-between; align-items:baseline;
-    padding:8px 0;
-    border-bottom:1px dashed var(--line);
-    font-size:12.5px;
-  }
-  .cons-row:last-child{border-bottom:none;}
-  .cons-name{color:var(--cream); font-weight:500;}
-  .cons-weight{color:var(--dim-2); font-size:10px; margin-left:4px;}
-  .cons-price{
-    font-family:'IBM Plex Mono', monospace;
-    color:var(--sage);
-    font-size:12px;
-    white-space:nowrap;
-  }
-  .cons-base{color:var(--dim-2); font-style:italic;}
-
-  footer{
-    text-align:center;
-    padding:30px 20px 10px;
-    font-size:10.5px;
-    color:var(--dim-2);
-    letter-spacing:0.03em;
-  }
-
-  /* ---------- CART BAR ---------- */
-  .cart-bar{
-    position:fixed;
-    left:0; right:0; bottom:0;
-    z-index:50;
-    display:none;
-    justify-content:center;
-    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
-    background:linear-gradient(180deg, transparent, var(--bg) 30%);
-  }
-  .cart-bar.visible{display:flex;}
-  .cart-bar-btn{
-    width:100%; max-width:448px;
-    display:flex; align-items:center; justify-content:space-between;
-    background:var(--rust);
-    color:var(--bg);
-    border:none;
-    border-radius:14px;
-    padding:14px 18px;
-    font-family:'Manrope', sans-serif;
-    font-weight:700;
-    font-size:14px;
-    cursor:pointer;
-    box-shadow:0 8px 24px rgba(0,0,0,0.35);
-  }
-  .cart-bar-btn .cart-count{
-    background:rgba(23,19,16,0.25);
-    border-radius:20px;
-    padding:2px 9px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    margin-right:10px;
-  }
-  .cart-bar-btn .cart-total{
-    font-family:'IBM Plex Mono', monospace;
-  }
-
-  /* ---------- CART PANEL ---------- */
-  .cart-overlay{
-    position:fixed; inset:0;
-    background:rgba(0,0,0,0.55);
-    z-index:60;
-    display:none;
-  }
-  .cart-overlay.open{display:block;}
-  .cart-panel{
-    position:fixed;
-    left:0; right:0; bottom:0;
-    z-index:61;
-    max-width:480px;
-    margin:0 auto;
-    background:var(--surface);
-    border-top-left-radius:20px;
-    border-top-right-radius:20px;
-    border:1px solid var(--line);
-    border-bottom:none;
-    max-height:80vh;
-    display:flex;
-    flex-direction:column;
-    transform:translateY(100%);
-    transition:transform 0.25s ease;
-  }
-  .cart-panel.open{transform:translateY(0);}
-  .cart-panel-header{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:18px 20px 10px;
-    border-bottom:1px solid var(--line);
-  }
-  .cart-panel-title{
-    font-family:'Newsreader', serif;
-    font-style:italic;
-    font-weight:600;
-    font-size:19px;
-  }
-  .cart-clear{
-    font-size:11.5px;
-    color:var(--dim);
-    background:none;
-    border:none;
-    cursor:pointer;
-    text-decoration:underline;
-  }
-  .cart-items{
-    overflow-y:auto;
-    padding:6px 20px;
-    flex:1;
-  }
-  .cart-empty{
-    padding:30px 0;
-    text-align:center;
-    color:var(--dim);
-    font-size:13px;
-  }
-  .cart-line{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:12px 0;
-    border-bottom:1px solid var(--line);
-    gap:10px;
-  }
-  .cart-line:last-child{border-bottom:none;}
-  .cart-line-name{
-    font-size:13.5px;
-    font-weight:600;
-    color:var(--cream);
-  }
-  .cart-line-unit{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:10.5px;
-    color:var(--dim-2);
-    margin-top:2px;
-  }
-  .stepper{
-    display:flex; align-items:center; gap:8px;
-    flex-shrink:0;
-  }
-  .step-btn{
-    width:24px; height:24px;
-    border-radius:50%;
-    border:1px solid var(--line);
-    background:var(--surface-2);
-    color:var(--cream);
-    font-size:14px;
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
-    padding:0;
-  }
-  .step-qty{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:13px;
-    min-width:16px;
-    text-align:center;
-  }
-  .cart-line-total{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:13px;
-    color:var(--rust);
-    min-width:52px;
-    text-align:right;
-  }
-  .cart-panel-footer{
-    padding:14px 20px calc(14px + env(safe-area-inset-bottom));
-    border-top:1px solid var(--line);
-  }
-  .cart-total-row{
-    display:flex; justify-content:space-between; align-items:baseline;
-    margin-bottom:6px;
-  }
-  .cart-total-label{font-size:13px; color:var(--dim);}
-  .cart-total-value{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:20px;
-    font-weight:600;
-    color:var(--cream);
-  }
-  .cart-note{
-    font-size:11px;
-    color:var(--dim-2);
-    line-height:1.4;
-  }
-</style>
-</head>
-<body>
-<div class="app">
-
-  <div class="hero">
-    <div class="hero-top">
-      <div class="wordmark">MELT</div>
-      <div class="locale">Novaya Borovaya<br>Minsk</div>
-    </div>
-    <div class="tagline">японские сэндвичи и панини</div>
-
-    <div class="clock">
-      <div class="clock-status">
-        <div class="clock-dot" id="clockDot"></div>
-        <div class="clock-text" id="clockText">—</div>
-      </div>
-      <div class="timeline">
-        <div class="timeline-track">
-          <div class="seg breakfast"></div>
-          <div class="seg evening"></div>
-        </div>
-        <div class="now-marker" id="nowMarker"></div>
-        <div class="timeline-labels">
-          <span>10:00</span><span>16:00</span><span>22:00</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="tabs" id="tabs">
-    <div class="tab" data-tab="breakfast">
-      <span class="tab-name">Завтрак</span>
-      <span class="tab-hours">10:00–16:00</span>
-    </div>
-    <div class="tab" data-tab="allday">
-      <span class="tab-name">Весь день</span>
-      <span class="tab-hours">10:00–22:00</span>
-    </div>
-    <div class="tab" data-tab="evening">
-      <span class="tab-name">Вечер</span>
-      <span class="tab-hours">16:00–22:00</span>
-    </div>
-  </div>
-
-  <div class="subtabs" id="subtabs"></div>
-
-  <main id="menuRoot"></main>
-
-  <footer>MELT · меню действительно на момент открытия · цены в BYN</footer>
+:root{--bg:#faf8f5;--card:#fff;--tx:#1f1d1a;--mu:#7a746b;--ln:#e8e3db;--ac:#c4571f;--soft:#fbeee6;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171513;--card:#211e1b;--tx:#f1ece4;--mu:#9d968b;--ln:#363029;--ac:#e8814d;--soft:#2e2219;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171513;--card:#211e1b;--tx:#f1ece4;--mu:#9d968b;--ln:#363029;--ac:#e8814d;--soft:#2e2219;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px}
+.w{max-width:760px;margin:0 auto}
+h1{font-size:20px;margin:0 0 2px}.sub{color:var(--mu);font-size:13px;margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:6px 8px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--mu);text-align:right;padding:8px 6px}
+th:first-child,td:first-child{text-align:left}
+td{padding:5px 6px;border-top:1px solid var(--ln);text-align:right;white-space:nowrap}
+tr:first-child td{border-top:0}
+input{font:inherit;color:var(--tx);background:transparent;border:1px solid transparent;border-radius:8px;padding:6px;width:100%}
+input:focus{outline:none;border-color:var(--ac);background:var(--soft)}
+.n{min-width:90px}.v{width:64px;text-align:right}.h{width:72px;text-align:right;background:var(--soft)}
+.o{font-weight:600}.o2{color:var(--ac);font-weight:600}
+.x{border:0;background:none;color:var(--mu);font-size:18px;cursor:pointer;padding:2px 6px}
+tfoot td{border-top:2px solid var(--ln);font-weight:700;padding-top:10px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button.b{font:inherit;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 12px;cursor:pointer}
+.sum{margin-top:14px;display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-size:14px}
+.sum span:nth-child(even){text-align:right}.sum .t{font-weight:700;color:var(--ac)}
+.bg{display:flex;align-items:center;gap:8px;color:var(--mu);font-size:13px;margin-top:10px}.bg input{width:64px;border-color:var(--ln);text-align:right}
+</style></head><body><div class="w">
+<h1>Калькулятор зарплат</h1>
+<p class="sub">Сотрудник получает на карту ровно «На руки». «Без ФСЗН 34%» — на руки + подоходный 13% + ФСЗН 1%. «С ФСЗН 34%» — плюс взнос нанимателя 34% (и Белгосстрах, если указан).</p>
+<div class="card"><table>
+<thead><tr><th>Имя</th><th>Ставка/ч</th><th>Часы</th><th>На руки</th><th>Без ФСЗН 34%</th><th>С ФСЗН 34%</th><th></th></tr></thead>
+<tbody id="tb"></tbody>
+<tfoot><tr><td>Итого</td><td></td><td id="th"></td><td id="tn"></td><td id="tg"></td><td id="tt"></td><td></td></tr></tfoot>
+</table></div>
+<div class="bar"><button class="b" id="add">+ Сотрудник</button><button class="b" id="clr">Очистить часы</button><button class="b" id="pdf">Скачать PDF</button><span id="st" style="color:var(--mu);font-size:13px;align-self:center"></span></div>
+<div class="bg">Белгосстрах, % <input id="bgs" inputmode="decimal"> <span>(по договору, по умолчанию 0)</span></div>
+<div class="sum" id="sum"></div>
 </div>
-
-<div class="cart-bar" id="cartBar">
-  <button class="cart-bar-btn" id="cartBarBtn">
-    <span><span class="cart-count" id="cartCount">0</span>В корзине</span>
-    <span class="cart-total" id="cartBarTotal">0 р.</span>
-  </button>
-</div>
-
-<div class="cart-overlay" id="cartOverlay"></div>
-<div class="cart-panel" id="cartPanel">
-  <div class="cart-panel-header">
-    <div class="cart-panel-title">Ваш выбор</div>
-    <button class="cart-clear" id="cartClear">Очистить</button>
-  </div>
-  <div class="cart-items" id="cartItems"></div>
-  <div class="cart-panel-footer">
-    <div class="cart-total-row">
-      <div class="cart-total-label">Итого</div>
-      <div class="cart-total-value" id="cartTotalValue">0 р.</div>
-    </div>
-    <div class="cart-note">Это просто счётчик для вас — заказ и оплата на кассе.</div>
-  </div>
-</div>
-
 <script>
-if (window.Telegram && window.Telegram.WebApp) {
-  const tg = window.Telegram.WebApp;
-  tg.ready();
-  tg.expand();
-  if (tg.requestFullscreen) tg.requestFullscreen();
-  if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
-  if (tg.setHeaderColor) tg.setHeaderColor('#171310');
-  if (tg.setBackgroundColor) tg.setBackgroundColor('#171310');
+const K=0.86;
+const DEF=[["Кирилл",14],["Паша",13],["Лера",10],["Вадим",10],["Элина",9],["Женя",9],["Ксюша",9]];
+let S=null;
+try{S=JSON.parse(localStorage.getItem("melt_pay1"))}catch(e){}
+if(!S||!Array.isArray(S.r))S={r:DEF.map(([n,v])=>({n,v:String(v),h:""})),b:"0"};
+const save=()=>{try{localStorage.setItem("melt_pay1",JSON.stringify(S))}catch(e){}};
+const p=x=>parseFloat(String(x).replace(",","."))||0;
+const f=x=>x.toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2});
+const tb=document.getElementById("tb");
+function render(){
+  tb.innerHTML="";
+  S.r.forEach((r,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML='<td><input class="n" placeholder="Имя"></td><td><input class="v" inputmode="decimal"></td><td><input class="h" inputmode="decimal" placeholder="0"></td><td class="o"></td><td class="o"></td><td class="o2"></td><td><button class="x" title="Удалить">×</button></td>';
+    const [n,v,h]=tr.querySelectorAll("input");
+    n.value=r.n;v.value=r.v;h.value=r.h;
+    n.oninput=()=>{r.n=n.value;save()};
+    v.oninput=()=>{r.v=v.value;calc()};
+    h.oninput=()=>{r.h=h.value;calc()};
+    tr.querySelector(".x").onclick=()=>{if(confirm("Удалить "+(r.n||"строку")+"?")){S.r.splice(i,1);render()}};
+    tb.appendChild(tr);
+  });
+  calc();
 }
-
-const MENU = {
-  breakfast: {
-    categories: [
-      {
-        id: "panini", title: "Панини", items: [
-          { id:"panini-losos", name:"Панини с лососем", price:22, desc:"лосось, гуакамоле, салат фризе, цитрусовый крем-чиз, соус песто", meta:"210 г · КБЖУ 390/20/18/38" },
-          { id:"panini-tunec", name:"Панини с тунцом", price:18, desc:"тунец в собственном соку, гуакамоле, томатная сальса, салат фризе, соус песто", meta:"230 г · КБЖУ 370/18/14/42" },
-          { id:"panini-kuritsa", name:"Панини с курицей", price:17, desc:"курица, перец маринованный, салат фризе, огурец маринованный, соус песто", meta:"255 г · КБЖУ 400/24/15/42" },
-          { id:"panini-kapreze", name:"Панини капрезе", price:18, desc:"сыр моцарелла, авокадо, томат, салат фризе, соус песто", meta:"240 г · КБЖУ 420/14/22/42" },
-        ]
-      },
-      {
-        id: "waffles", title: "Вафли", items: [
-          { id:"waffle-bacon", name:"Вафля с беконом", price:17, desc:"бекон, перец маринованный, чеддер, микс салата, яйцо пашот, соус бургер, соус голландский", meta:"260 г · КБЖУ 620/28/38/38" },
-          { id:"waffle-chicken", name:"Вафля с курицей", price:17, desc:"курица, чеддер, микс салата, огурец марин., томат, яйцо пашот, соус сл. чили, соус голландский", meta:"305 г · КБЖУ 580/28/38/42" },
-          { id:"waffle-shrimp", name:"Вафля с креветкой", price:25, desc:"вафля со шпинатом, креветки, гуакамоле, томатная сальса, яйцо пашот, крем-чиз, икра тобико", meta:"295 г · КБЖУ 410/28/22/28" },
-        ]
-      },
-      {
-        id: "other", title: "Другое", items: [
-          { id:"breakfast-melt", name:"Завтрак MELT", price:24, desc:"колбаска куриная, томаты, вешенки в унаги, фасоль в томате, глазунья, хлеб хоккайдо", meta:"440 г · КБЖУ 720/24/52/38" },
-          { id:"toast-salmon", name:"Тост с лососем", price:20, desc:"хлеб хоккайдо, лосось, гуакамоле, томатная сальса, яйцо пашот, соус голландский", meta:"245 г · КБЖУ 398/22/18,5/35" },
-          { id:"poke-chicken", name:"Поке с курицей", price:24, desc:"курица, рис, морковь по-корейски, капуста красная, огурец маринованный, черри, яйцо пашот, сладкий чили", meta:"450 г · КБЖУ 520/32/14/68" },
-          { id:"buckwheat-salmon", name:"Гречка с лососем", price:23, desc:"зеленая гречка с пармезаном, лосось, авокадо, яйцо пашот", meta:"345 г · КБЖУ 548/32/28,5/42" },
-        ]
-      }
-    ],
-    constructorBlock: {
-      title: "Завтрак — конструктор",
-      base: "Яйца (глазунья, скрэмбл, пашот) — 100 г, входит в базу",
-      addons: [
-        { name:"Гуакамоле", weight:"30 г", price:"+5" },
-        { name:"Бекон", weight:"20 г", price:"+4" },
-        { name:"Цитрусовый крем-чиз", weight:"30 г", price:"+3" },
-        { name:"Креветки", weight:"35 г", price:"+10" },
-        { name:"Томатная сальса / томат", weight:"30 г", price:"+3" },
-        { name:"Лосось", weight:"50 г", price:"+10" },
-        { name:"Фасоль в томате", weight:"100 г", price:"+3" },
-        { name:"Колбаска куриная", weight:"70 г", price:"+4" },
-        { name:"Микс салата", weight:"30 г", price:"+3" },
-        { name:"Вешенки в унаги", weight:"30 г", price:"+3" },
-      ]
-    }
-  },
-  allday: {
-    categories: [
-      {
-        id: "sandwiches", title: "Сэндвичи", items: [
-          { id:"sandwich-smash", name:"Сэндвич смэш", price:30, desc:"хлеб хоккайдо, тройная говяжья смэш котлета, чеддер, томатная сальса, микс салата, соус бургер и трюфельный", meta:"400 г · КБЖУ 930/60/50/52" },
-          { id:"sandwich-chicken", name:"Сэндвич с курицей", price:24, desc:"хлеб хоккайдо, курица, вешенки в унаги, томат, микс салата, чеддер, соус трюфельный и сырный", meta:"310 г · КБЖУ 620/42/25/52" },
-        ]
-      },
-      {
-        id: "salads", title: "Салаты", items: [
-          { id:"salad-shrimp", name:"Зелёный салат с креветкой", price:32, desc:"креветки, авокадо, клубника, огурец, чука салат, микс салата, орехово-кунжутный соус", meta:"270 г · КБЖУ 328/20/22,3/12" },
-          { id:"salad-salmon-strac", name:"Салат с лососем и страчателлой", price:21, desc:"лосось, перец маринованный, страчателла, микс салата, соус соево-кунжутный, пармезан", meta:"190 г · КБЖУ 312/18/21/10,5" },
-        ]
-      },
-      {
-        id: "sweets", title: "Сладкое", items: [
-          { id:"affogato", name:"Аффогато", price:15, meta:"130 г · КБЖУ 260/4,5/12/34" },
-          { id:"matchagato", name:"Матчагато с манго", price:15, meta:"130 г · КБЖУ 295/4/12/42" },
-          { id:"tiramisu", name:"Тирамису", price:13, meta:"180 г · КБЖУ 380/6,5/18/48" },
-          { id:"mochi", name:"Моти", price:10, meta:"100 г · КБЖУ 285/4/8/48" },
-          { id:"syrniki", name:"Сырники с клубникой", price:16, meta:"280 г · КБЖУ 380/6,5/18/48" },
-          { id:"chia", name:"Чиа пудинг", price:13, meta:"240 г · КБЖУ 285/8,5/10,5/42" },
-        ]
-      }
-    ]
-  },
-  evening: {
-    categories: [
-      {
-        id: "sandwiches-e", title: "Сэндвичи", items: [
-          { id:"sandwich-melt", name:"Сэндвич MELT", price:27, desc:"хлеб хоккайдо, говяжья котлета, чеддер, микс салата, томат, огурец марин., карамелизированный лук, соус бургер и сл. чили, лук криспи", meta:"370 г · КБЖУ 650/32/35/52" },
-          { id:"sandwich-bacon", name:"Сэндвич с беконом", price:22, desc:"хлеб хоккайдо, бекон, сыр чеддер, пикантная красная капуста, томат, соус тар-тар и сырный", meta:"320 г · КБЖУ 630/28/35/48" },
-        ]
-      },
-      {
-        id: "tacos", title: "Тако", items: [
-          { id:"tacos-set", name:"Сет из 2-х тако", price:36, desc:"картофельная лепёшка, креветки, гуакамоле, томатная сальса, икра тобико — и картофельная лепёшка, лосось, цитрусовый крем-чиз, пикантная красная капуста", meta:"175 г · КБЖУ 285/14/13/28" },
-        ]
-      },
-      {
-        id: "poke", title: "Поке боул", items: [
-          {
-            id:"poke-bowl", name:"Поке боул", desc:"рис, авокадо, манго, черри, чука салат, капуста красная, соус ореховый",
-            dualPrice:[
-              {id:"poke-bowl-shrimp", label:"с креветкой", price:34, meta:"460 г · КБЖУ 490/26/16/64"},
-              {id:"poke-bowl-salmon", label:"с лососем", price:31, meta:"440 г · КБЖУ 530/24/22/62"}
-            ]
-          },
-        ]
-      }
-    ]
-  }
+function calc(){
+  const b=p(S.b)/100;let H=0,N=0,G=0;
+  [...tb.rows].forEach((tr,i)=>{
+    const r=S.r[i],net=p(r.v)*p(r.h),g=net/K;
+    H+=p(r.h);N+=net;G+=g;
+    tr.cells[3].textContent=f(net);
+    tr.cells[4].textContent=f(g);tr.cells[5].textContent=f(g*(1+0.34+b));
+  });
+  const e1=G*0.01,tax=G*0.13,e34=G*0.34,bg=G*b,tot=G+e34+bg;
+  th.textContent=H.toLocaleString("ru-RU");tn.textContent=f(N);tg.textContent=f(G);tt.textContent=f(tot);
+  sum.innerHTML=[["Сотрудникам на карту",N],["Подоходный 13%",tax],["ФСЗН 1%",e1],["ФСЗН 34%",e34],["Белгосстрах",bg]]
+    .map(([a,x])=>`<span>${a}</span><span>${f(x)} р</span>`).join("")+`<span class="t">Всего расход</span><span class="t">${f(tot)} р</span>`;
+  save();
+}
+add.onclick=()=>{S.r.push({n:"",v:"0",h:""});render();tb.lastChild.querySelector(".n").focus()};
+clr.onclick=()=>{S.r.forEach(r=>r.h="");render()};
+bgs.value=S.b;bgs.oninput=()=>{S.b=bgs.value;calc()};
+function note(t){st.textContent=t;setTimeout(()=>{st.textContent=""},3500)}
+function drawPage(){
+  const b=p(S.b)/100,W=1240,HH=1754,M=80,F="system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif";
+  const rows=S.r.filter(r=>p(r.h)>0).map(r=>{const net=p(r.v)*p(r.h),g=net/K;return{n:r.n||"—",v:p(r.v),h:p(r.h),net,g,t:g*(1.34+b)}});
+  if(!rows.length)return null;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=HH;
+  const x=cv.getContext("2d");
+  x.fillStyle="#fff";x.fillRect(0,0,W,HH);x.textBaseline="middle";
+  x.textAlign="left";x.fillStyle="#111";x.font="700 44px "+F;x.fillText("Расчёт зарплат · Melt",M,100);
+  x.fillStyle="#777";x.font="24px "+F;x.fillText("Сформировано "+new Date().toLocaleDateString("ru-RU"),M,150);
+  const cols=[["Имя",220],["Ставка/ч",130],["Часы",110],["На руки",190],["Без ФСЗН 34%",210],["С ФСЗН 34%",220]];
+  const rule=(yy,h,col)=>{x.fillStyle=col;x.fillRect(M,yy,W-2*M,h)};
+  const row=(yy,vals,font,col)=>{x.font=font;x.fillStyle=col;let cx=M;cols.forEach((cl,i)=>{x.textAlign=i?"right":"left";x.fillText(vals[i],i?cx+cl[1]:cx,yy);cx+=cl[1]})};
+  let y=230,H=0,N=0,G=0;
+  row(y,cols.map(cl=>cl[0]),"700 22px "+F,"#777");rule(y+28,3,"#111");y+=66;
+  rows.forEach(r=>{H+=r.h;N+=r.net;G+=r.g;
+    row(y,[r.n,f(r.v),String(r.h).replace(".",","),f(r.net),f(r.g),f(r.t)],"26px "+F,"#111");rule(y+32,1,"#e5e5e5");y+=64});
+  const e1=G*0.01,tax=G*0.13,e34=G*0.34,bg=G*b,tot=G+e34+bg;
+  rule(y-32,3,"#111");
+  row(y,["Итого","",H.toLocaleString("ru-RU"),f(N),f(G),f(tot)],"700 26px "+F,"#111");
+  y+=110;
+  [["Сотрудникам на карту",N],["Подоходный 13%",tax],["ФСЗН 1%",e1],["ФСЗН 34%",e34]].concat(b>0?[["Белгосстрах",bg]]:[]).forEach(([a,v])=>{
+    x.font="26px "+F;x.fillStyle="#111";x.textAlign="left";x.fillText(a,M,y);x.textAlign="right";x.fillText(f(v)+" р",W-M,y);y+=52});
+  rule(y-26,2,"#111");y+=22;
+  x.font="700 32px "+F;x.fillStyle="#111";x.textAlign="left";x.fillText("Всего расход",M,y);x.textAlign="right";x.fillText(f(tot)+" р",W-M,y);
+  return cv;
+}
+async function makePdf(cv){
+  const blob=await new Promise(r=>cv.toBlob(r,"image/jpeg",0.92));
+  const jpg=new Uint8Array(await blob.arrayBuffer());
+  const enc=new TextEncoder(),parts=[],offs=[];let len=0;
+  const push=d=>{const u=typeof d==="string"?enc.encode(d):d;parts.push(u);len+=u.length};
+  const obj=(n,body,stream)=>{offs[n]=len;push(n+" 0 obj\n"+body+"\n");if(stream){push("stream\n");push(stream);push("\nendstream\n")}push("endobj\n")};
+  push("%PDF-1.4\n");
+  obj(1,"<< /Type /Catalog /Pages 2 0 R >>");
+  obj(2,"<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+  obj(3,"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>");
+  obj(4,"<< /Type /XObject /Subtype /Image /Width "+cv.width+" /Height "+cv.height+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+jpg.length+" >>",jpg);
+  const cs="q 595 0 0 842 0 0 cm /Im0 Do Q";
+  obj(5,"<< /Length "+cs.length+" >>",enc.encode(cs));
+  const xr=len;push("xref\n0 6\n0000000000 65535 f \n");
+  for(let i=1;i<=5;i++)push(String(offs[i]).padStart(10,"0")+" 00000 n \n");
+  push("trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n"+xr+"\n%%EOF");
+  return new Blob(parts,{type:"application/pdf"});
+}
+pdf.onclick=async()=>{
+  const cv=drawPage();
+  if(!cv)return note("Введите часы хотя бы одному сотруднику");
+  try{const u=URL.createObjectURL(await makePdf(cv)),a=document.createElement("a");a.href=u;a.download="zarplaty-"+new Date().toISOString().slice(0,10)+".pdf";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+  catch(e){note("Не удалось сохранить PDF")}
 };
-
-const menuRoot = document.getElementById('menuRoot');
-const subtabsEl = document.getElementById('subtabs');
-const tabsEl = document.getElementById('tabs');
-
-// ---------- CART STATE ----------
-const cart = {}; // key -> {name, price, qty}
-
-function addToCart(key, name, price){
-  if(!cart[key]) cart[key] = {name, price, qty:0};
-  cart[key].qty += 1;
-  renderAll();
-}
-function decFromCart(key){
-  if(!cart[key]) return;
-  cart[key].qty -= 1;
-  if(cart[key].qty <= 0) delete cart[key];
-  renderAll();
-}
-function clearCart(){
-  Object.keys(cart).forEach(k => delete cart[k]);
-  renderAll();
-}
-function cartTotals(){
-  let count = 0, total = 0;
-  Object.values(cart).forEach(l => { count += l.qty; total += l.qty * l.price; });
-  return {count, total};
-}
-
-function renderItem(item){
-  if(item.dualPrice){
-    return `
-      <div class="item">
-        <div class="item-name">${item.name}</div>
-        ${item.desc ? `<div class="item-desc">${item.desc}</div>` : ''}
-        <div class="item-prices">
-          ${item.dualPrice.map(p => `
-            <div class="price-opt-row">
-              <div class="price-opt">${p.label} — <b>${p.price} р.</b><span>${p.meta}</span></div>
-              <button class="add-btn" data-key="${p.id}" data-name="${item.name} (${p.label})" data-price="${p.price}">
-                +${cart[p.id] ? `<span class="qty-badge">${cart[p.id].qty}</span>` : ''}
-              </button>
-            </div>
-          `).join('')}
-        </div>
-      </div>`;
-  }
-  return `
-    <div class="item">
-      <div class="item-head">
-        <div class="item-name">${item.name}</div>
-        <div class="item-right">
-          <div class="item-price">${item.price}</div>
-          <button class="add-btn" data-key="${item.id}" data-name="${item.name}" data-price="${item.price}">
-            +${cart[item.id] ? `<span class="qty-badge">${cart[item.id].qty}</span>` : ''}
-          </button>
-        </div>
-      </div>
-      ${item.desc ? `<div class="item-desc">${item.desc}</div>` : ''}
-      ${item.meta ? `<div class="item-meta">${item.meta}</div>` : ''}
-    </div>`;
-}
-
-function renderConstructor(c){
-  return `
-    <div class="constructor">
-      <div class="constructor-title">${c.title}</div>
-      <div class="cons-row"><span class="cons-base">${c.base}</span></div>
-      ${c.addons.map(a => `
-        <div class="cons-row">
-          <span class="cons-name">${a.name}<span class="cons-weight">${a.weight}</span></span>
-          <span class="cons-price">${a.price} р.</span>
-        </div>
-      `).join('')}
-    </div>`;
-}
-
-function renderTab(tabId){
-  const data = MENU[tabId];
-  let html = `<div class="menu-view" id="view-${tabId}">`;
-  data.categories.forEach(cat => {
-    html += `
-      <div class="cat-block" id="cat-${tabId}-${cat.id}">
-        <div class="cat-title">${cat.title}</div>
-        <div class="cat-rule"></div>
-        ${cat.items.map(renderItem).join('')}
-      </div>`;
-  });
-  if(data.constructorBlock){
-    html += renderConstructor(data.constructorBlock);
-  }
-  html += `</div>`;
-  return html;
-}
-
-function renderMenu(){
-  menuRoot.innerHTML = '';
-  ['breakfast','allday','evening'].forEach(tabId => {
-    menuRoot.insertAdjacentHTML('beforeend', renderTab(tabId));
-  });
-  const activeTab = document.querySelector('.tab.active');
-  document.querySelectorAll('.menu-view').forEach(v => v.classList.toggle('hidden', !activeTab || v.id !== `view-${activeTab.dataset.tab}`));
-}
-
-function renderSubtabs(tabId){
-  const data = MENU[tabId];
-  subtabsEl.innerHTML = data.categories.map(cat =>
-    `<div class="chip" data-target="cat-${tabId}-${cat.id}">${cat.title}</div>`
-  ).join('') + (data.constructorBlock ? `<div class="chip" data-target="constructor-${tabId}">Конструктор</div>` : '');
-}
-
-function setActiveTab(tabId){
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
-  document.querySelectorAll('.menu-view').forEach(v => v.classList.toggle('hidden', v.id !== `view-${tabId}`));
-  renderSubtabs(tabId);
-  window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
-}
-
-tabsEl.addEventListener('click', (e) => {
-  const tab = e.target.closest('.tab');
-  if(!tab) return;
-  setActiveTab(tab.dataset.tab);
-});
-
-subtabsEl.addEventListener('click', (e) => {
-  const chip = e.target.closest('.chip');
-  if(!chip) return;
-  const target = document.getElementById(chip.dataset.target);
-  if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
-});
-
-menuRoot.addEventListener('click', (e) => {
-  const btn = e.target.closest('.add-btn');
-  if(!btn) return;
-  addToCart(btn.dataset.key, btn.dataset.name, parseFloat(btn.dataset.price));
-});
-
-// ---------- CART UI ----------
-const cartBar = document.getElementById('cartBar');
-const cartCount = document.getElementById('cartCount');
-const cartBarTotal = document.getElementById('cartBarTotal');
-const cartOverlay = document.getElementById('cartOverlay');
-const cartPanel = document.getElementById('cartPanel');
-const cartItemsEl = document.getElementById('cartItems');
-const cartTotalValue = document.getElementById('cartTotalValue');
-const cartBarBtn = document.getElementById('cartBarBtn');
-const cartClearBtn = document.getElementById('cartClear');
-
-function renderCartBar(){
-  const {count, total} = cartTotals();
-  if(count > 0){
-    cartBar.classList.add('visible');
-    cartCount.textContent = count;
-    cartBarTotal.textContent = total + ' р.';
-  } else {
-    cartBar.classList.remove('visible');
-  }
-}
-
-function renderCartPanel(){
-  const entries = Object.entries(cart);
-  if(entries.length === 0){
-    cartItemsEl.innerHTML = `<div class="cart-empty">Пока пусто — добавляйте блюда кнопкой «+»</div>`;
-  } else {
-    cartItemsEl.innerHTML = entries.map(([key, line]) => `
-      <div class="cart-line" data-key="${key}">
-        <div>
-          <div class="cart-line-name">${line.name}</div>
-          <div class="cart-line-unit">${line.price} р. / шт</div>
-        </div>
-        <div class="stepper">
-          <button class="step-btn step-minus" data-key="${key}">−</button>
-          <div class="step-qty">${line.qty}</div>
-          <button class="step-btn step-plus" data-key="${key}">+</button>
-        </div>
-        <div class="cart-line-total">${line.qty * line.price} р.</div>
-      </div>
-    `).join('');
-  }
-  const {total} = cartTotals();
-  cartTotalValue.textContent = total + ' р.';
-}
-
-function renderAll(){
-  renderMenu();
-  renderCartBar();
-  renderCartPanel();
-}
-
-function openCart(){
-  cartOverlay.classList.add('open');
-  cartPanel.classList.add('open');
-}
-function closeCart(){
-  cartOverlay.classList.remove('open');
-  cartPanel.classList.remove('open');
-}
-
-cartBarBtn.addEventListener('click', openCart);
-cartOverlay.addEventListener('click', closeCart);
-cartClearBtn.addEventListener('click', clearCart);
-
-cartItemsEl.addEventListener('click', (e) => {
-  const plus = e.target.closest('.step-plus');
-  const minus = e.target.closest('.step-minus');
-  if(plus){ addToCart(plus.dataset.key, cart[plus.dataset.key].name, cart[plus.dataset.key].price); }
-  if(minus){ decFromCart(minus.dataset.key); }
-});
-
-// ---- live serving clock ----
-function updateClock(){
-  const now = new Date();
-  const hourFloat = now.getHours() + now.getMinutes()/60;
-
-  const track = document.querySelector('.timeline-track');
-  const trackWidth = track.offsetWidth;
-  const pct = Math.min(Math.max((hourFloat - 10) / (22 - 10), 0), 1);
-  document.getElementById('nowMarker').style.left = (pct * trackWidth) + 'px';
-
-  const dot = document.getElementById('clockDot');
-  const text = document.getElementById('clockText');
-
-  let statusHTML, defaultTab, closed = false;
-  if(hourFloat < 10){
-    statusHTML = `Закрыто <span>· откроемся в 10:00</span>`;
-    defaultTab = 'breakfast';
-    closed = true;
-  } else if(hourFloat < 16){
-    statusHTML = `Открыто <span>· завтрак и основное меню</span>`;
-    defaultTab = 'breakfast';
-  } else if(hourFloat < 22){
-    statusHTML = `Открыто <span>· вечернее и основное меню</span>`;
-    defaultTab = 'evening';
-  } else {
-    statusHTML = `Закрыто <span>· откроемся в 10:00</span>`;
-    defaultTab = 'breakfast';
-    closed = true;
-  }
-  text.innerHTML = statusHTML;
-  dot.classList.toggle('closed', closed);
-  return defaultTab;
-}
-
-const initialTab = updateClock();
-setActiveTab(initialTab);
-renderAll();
-setInterval(updateClock, 60000);
-window.addEventListener('resize', updateClock);
-</script>
-</body>
-</html>
+render();
+</script></body></html>
